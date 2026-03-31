@@ -1,0 +1,32 @@
+[project]
+name = "kb-test"
+version = "0.1.0"
+requires-python = ">=3.13"
+dependencies = [
+    "django>=5.0",
+    "django-ninja",
+    "django-stubs",
+    "django-click",
+    "real-ladybug",
+    "chromadb",
+    "litellm",
+    "rich",
+    "httpx",
+    "python-dotenv",
+    "ruff",
+    "loguru>=0.7.3",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "pytest-django",
+    "model-bakery",
+]
+
+[tool.ruff]
+line-length = 88
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "kb_project.settings"
+python_files = ["test_*.py", "*_test.py", "testing/python/*.py"]

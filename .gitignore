@@ -1,0 +1,5 @@
+*.pyc
+.env
+*.lbug
+*.sqlite3
+./chroma_data/
