@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 from typing import List, Dict
 
+
 class IngestRequest(BaseModel):
     text: str
     source_id: str

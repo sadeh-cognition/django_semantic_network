@@ -3,10 +3,14 @@ import uuid
 import re
 from typing import List
 
-def slugify(text: str) -> str:
-    return re.sub(r'[^a-zA-Z0-9]+', '-', str(text).lower()).strip('-')
 
-def merge_concept(conn, pref_label: str, concept_data=None, source_chunk: str = "") -> str:
+def slugify(text: str) -> str:
+    return re.sub(r"[^a-zA-Z0-9]+", "-", str(text).lower()).strip("-")
+
+
+def merge_concept(
+    conn, pref_label: str, concept_data=None, source_chunk: str = ""
+) -> str:
     """
     Idempotent upsert of a concept using its slugified pref_label as ID.
     Always updates metadata (like definition) to the latest found.
@@ -14,11 +18,11 @@ def merge_concept(conn, pref_label: str, concept_data=None, source_chunk: str = 
     cid = slugify(pref_label)
     if not cid:
         cid = f"concept-{uuid.uuid4().hex[:8]}"
-        
+
     alt_labels = concept_data.alt_labels if concept_data else []
     definition = concept_data.definition if concept_data else ""
     confidence = concept_data.confidence if concept_data else 1.0
-    
+
     query = """
     MERGE (c:Concept {id: $id})
     SET c.prefLabel = $pref_label,
@@ -34,13 +38,16 @@ def merge_concept(conn, pref_label: str, concept_data=None, source_chunk: str = 
         "alt_labels": alt_labels,
         "definition": definition,
         "confidence": confidence,
-        "source_chunk": source_chunk
+        "source_chunk": source_chunk,
     }
-    
+
     conn.execute(query, params)
     return cid
 
-def merge_paper(conn, paper_id: str, title: str, abstract: str, year: int = 0, doi: str = "") -> str:
+
+def merge_paper(
+    conn, paper_id: str, title: str, abstract: str, year: int = 0, doi: str = ""
+) -> str:
     query = """
     MERGE (p:Paper {id: $id})
     SET p.title = $title,
@@ -54,10 +61,11 @@ def merge_paper(conn, paper_id: str, title: str, abstract: str, year: int = 0, d
         "title": title,
         "abstract": abstract,
         "year": year,
-        "doi": doi
+        "doi": doi,
     }
     conn.execute(query, params)
     return paper_id
+
 
 def add_hierarchical_relation(conn, child_id: str, parent_id: str) -> None:
     # Child -> Parent is BROADER
@@ -68,6 +76,7 @@ def add_hierarchical_relation(conn, child_id: str, parent_id: str) -> None:
     MERGE (c2)-[:NARROWER]->(c1)
     """
     conn.execute(query, {"c_id": child_id, "p_id": parent_id})
+
 
 def add_related(conn, id_a: str, id_b: str, confidence: float = 1.0) -> None:
     query = """
@@ -80,7 +89,9 @@ def add_related(conn, id_a: str, id_b: str, confidence: float = 1.0) -> None:
     conn.execute(query, {"id_a": id_a, "id_b": id_b, "confidence": confidence})
 
 
-def link_paper_to_concept(conn, paper_id: str, concept_id: str, relevance: float = 1.0) -> None:
+def link_paper_to_concept(
+    conn, paper_id: str, concept_id: str, relevance: float = 1.0
+) -> None:
     query = """
     MATCH (p:Paper {id: $pid}), (c:Concept {id: $cid})
     MERGE (p)-[r:EXPLORES]->(c)
@@ -88,8 +99,9 @@ def link_paper_to_concept(conn, paper_id: str, concept_id: str, relevance: float
     """
     conn.execute(query, {"pid": paper_id, "cid": concept_id, "relevance": relevance})
 
+
 def add_generic_relation(conn, from_label: str, to_label: str) -> None:
-    # If the user extracted arbitrary relationships with LLM, we can map them to 
+    # If the user extracted arbitrary relationships with LLM, we can map them to
     # either a generic RELATED or IS_A depending on the label mapping, or simply add RELATED.
     fid = slugify(from_label)
     tid = slugify(to_label)
@@ -102,6 +114,7 @@ def add_generic_relation(conn, from_label: str, to_label: str) -> None:
     """
     conn.execute(query, {"fid": fid, "tid": tid})
 
+
 def validate_no_circular_hierarchy(conn) -> List[List[str]]:
     # Simple check for self-loops: MATCH (c:Concept)-[:BROADER]->(c)
     # A complete cycle check in Cypher: MATCH p=(c)-[:BROADER*1..10]->(c)
@@ -111,11 +124,12 @@ def validate_no_circular_hierarchy(conn) -> List[List[str]]:
     try:
         res = conn.execute("MATCH (c:Concept)-[:BROADER]->(c) RETURN id(c)")
         while res.has_next():
-             row = res.get_next()
-             cycles.append([row[0], row[0]])
+            row = res.get_next()
+            cycles.append([row[0], row[0]])
     except Exception as e:
         logger.warning(f"Cycle validation failed: {e}")
     return cycles
+
 
 def validate_no_isolated_concepts(conn) -> List[str]:
     isolated = []
@@ -133,6 +147,7 @@ def validate_no_isolated_concepts(conn) -> List[str]:
         logger.warning(f"Isolated concept validation failed: {e}")
     return isolated
 
+
 def validate_no_duplicates(conn) -> List[str]:
     # Since we use slugified ID, true duplicates with same slug are impossible due to PRIMARY KEY.
     # But we can check if different IDs have same exact prefLabel.
@@ -146,8 +161,8 @@ def validate_no_duplicates(conn) -> List[str]:
         """
         res = conn.execute(q)
         while res.has_next():
-             row = res.get_next()
-             dups.append(row[0])
+            row = res.get_next()
+            dups.append(row[0])
     except Exception:
         pass
     return dups

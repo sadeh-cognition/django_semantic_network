@@ -1,5 +1,4 @@
 from loguru import logger
-from datetime import datetime
 from .entity_extraction import extract_concepts_and_relations
 from .graph_builder import (
     merge_concept,
@@ -14,7 +13,6 @@ from .query_engine import _get_embedding
 def ingest_text_chunk(text: str, source_id: str) -> IngestLog:
     """
     1. Call entity_extraction.extract_concepts_and_relations(text)
-       — uses groq/llama-3.1-8b-instant via litellm
     2. For each concept: graph_builder.merge_concept() → get/create id
     3. Embed each concept text via litellm (LMStudio, text-embedding-ada-002)
        → upsert into ChromaDB 'concepts' collection

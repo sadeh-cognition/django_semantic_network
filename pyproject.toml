@@ -3,6 +3,7 @@ name = "kb-test"
 version = "0.1.0"
 requires-python = ">=3.13"
 dependencies = [
+    "dspy",
     "django>=5.0",
     "django-ninja",
     "django-stubs",
@@ -30,3 +31,8 @@ line-length = 88
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "kb_project.settings"
 python_files = ["test_*.py", "*_test.py", "testing/python/*.py"]
+
+[dependency-groups]
+dev = [
+    "pre-commit>=4.5.1",
+]

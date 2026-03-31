@@ -6,6 +6,7 @@ from django.conf import settings
 _lbug_db = None
 _lbug_conn = None
 
+
 def get_ladybug_connection():
     global _lbug_db, _lbug_conn
     if _lbug_db is None:
@@ -13,7 +14,9 @@ def get_ladybug_connection():
         _lbug_conn = lb.Connection(_lbug_db)
     return _lbug_conn
 
+
 _chroma_client = None
+
 
 def get_chroma_client():
     global _chroma_client
@@ -21,19 +24,20 @@ def get_chroma_client():
         _chroma_client = chromadb.PersistentClient(path=str(settings.CHROMADB_PATH))
     return _chroma_client
 
+
 def get_concepts_collection():
     client = get_chroma_client()
     return client.get_or_create_collection(
-        name="concepts",
-        metadata={"hnsw:space": "cosine"}
+        name="concepts", metadata={"hnsw:space": "cosine"}
     )
+
 
 def get_papers_collection():
     client = get_chroma_client()
     return client.get_or_create_collection(
-        name="papers",
-        metadata={"hnsw:space": "cosine"}
+        name="papers", metadata={"hnsw:space": "cosine"}
     )
+
 
 def init_ladybug_schema():
     conn = get_ladybug_connection()
@@ -48,14 +52,17 @@ def init_ladybug_schema():
         "CREATE REL TABLE INTRODUCES(FROM Paper TO Concept);",
         "CREATE REL TABLE AUTHORED_BY(FROM Paper TO Author, role STRING);",
         "CREATE REL TABLE IS_A(FROM Concept TO Concept);",
-        "CREATE REL TABLE HAS_PART(FROM Concept TO Concept);"
+        "CREATE REL TABLE HAS_PART(FROM Concept TO Concept);",
     ]
     for stmt in ddl_statements:
         try:
             conn.execute(stmt)
             logger.info(f"Executed: {stmt.split('(')[0]}")
         except Exception as e:
-            if "catalog exception" in str(e).lower() or "already exists" in str(e).lower():
+            if (
+                "catalog exception" in str(e).lower()
+                or "already exists" in str(e).lower()
+            ):
                 pass  # Ignore already exists errors
             else:
                 logger.error(f"Error executing {stmt}: {e}")

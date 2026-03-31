@@ -1,6 +1,7 @@
 import djclick as click
 from django_lightrag.storage import init_ladybug_schema
 
+
 @click.command()
 def command():
     """Initializes the LadybugDB graph schema."""
