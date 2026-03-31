@@ -16,6 +16,7 @@ dependencies = [
     "python-dotenv",
     "ruff",
     "loguru>=0.7.3",
+    "embed-gen",
 ]
 
 [project.optional-dependencies]
@@ -32,7 +33,11 @@ line-length = 88
 DJANGO_SETTINGS_MODULE = "kb_project.settings"
 python_files = ["test_*.py", "*_test.py", "testing/python/*.py"]
 
+[tool.uv.sources]
+embed-gen = { path = "../embed_gen", editable = true }
+
 [dependency-groups]
 dev = [
     "pre-commit>=4.5.1",
+    "rich>=14.3.3",
 ]

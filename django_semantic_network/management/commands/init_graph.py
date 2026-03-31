@@ -1,5 +1,5 @@
 import djclick as click
-from django_lightrag.storage import init_ladybug_schema
+from django_semantic_network.storage import init_ladybug_schema
 
 
 @click.command()

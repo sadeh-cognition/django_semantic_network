@@ -45,7 +45,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "djclick",
-    "django_lightrag",
+    "django_semantic_network",
 ]
 
 MIDDLEWARE = [
@@ -149,4 +149,4 @@ class InterceptHandler(logging.Handler):
         )
 
 
-logging.basicConfig(handlers=[InterceptHandler()], level=0, force=True)
+logging.basicConfig(handlers=[InterceptHandler()], level=logging.INFO, force=True)

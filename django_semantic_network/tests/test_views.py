@@ -1,5 +1,9 @@
 import pytest
-from django_lightrag.schemas import IngestRequest, SearchRequest, GraphRAGRequest
+from django_semantic_network.schemas import (
+    IngestRequest,
+    SearchRequest,
+    GraphRAGRequest,
+)
 
 
 @pytest.mark.django_db

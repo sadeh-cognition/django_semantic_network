@@ -1,6 +1,6 @@
 import djclick as click
 from tui.client import KGClient
-from django_lightrag.schemas import IngestRequest
+from django_semantic_network.schemas import IngestRequest
 
 
 @click.command()

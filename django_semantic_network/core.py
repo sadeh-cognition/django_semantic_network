@@ -1,20 +1,22 @@
 from loguru import logger
+from rich import print
+
 from .entity_extraction import extract_concepts_and_relations
 from .graph_builder import (
-    merge_concept,
-    add_hierarchical_relation,
     add_generic_relation,
+    add_hierarchical_relation,
+    merge_concept,
 )
-from .storage import get_ladybug_connection, get_concepts_collection
 from .models import IngestLog
 from .query_engine import _get_embedding
+from .storage import get_concepts_collection, get_ladybug_connection
 
 
 def ingest_text_chunk(text: str, source_id: str) -> IngestLog:
     """
     1. Call entity_extraction.extract_concepts_and_relations(text)
     2. For each concept: graph_builder.merge_concept() → get/create id
-    3. Embed each concept text via litellm (LMStudio, text-embedding-ada-002)
+    3. Embed each concept text via litellm
        → upsert into ChromaDB 'concepts' collection
     4. Build all SKOS relationships in LadybugDB
     5. Write IngestLog to Django ORM
@@ -26,6 +28,7 @@ def ingest_text_chunk(text: str, source_id: str) -> IngestLog:
     try:
         # Step 1: Extraction
         extracted_graph = extract_concepts_and_relations(text)
+        print(extracted_graph)
 
         # Keep track of generated IDs for linking
         label_to_id = {}

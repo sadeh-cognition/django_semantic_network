@@ -1,5 +1,5 @@
 import httpx
-from django_lightrag.schemas import (
+from django_semantic_network.schemas import (
     IngestRequest,
     IngestResponse,
     SearchRequest,

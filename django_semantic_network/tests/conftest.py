@@ -1,8 +1,8 @@
 import pytest
 import os
 from ninja.testing import TestClient
-from django_lightrag.urls import api
-from django_lightrag.storage import init_ladybug_schema
+from django_semantic_network.urls import api
+from django_semantic_network.storage import init_ladybug_schema
 
 
 @pytest.fixture(autouse=True)

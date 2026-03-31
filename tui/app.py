@@ -5,7 +5,11 @@ from rich.panel import Panel
 from rich.table import Table
 
 from tui.client import KGClient
-from django_lightrag.schemas import IngestRequest, SearchRequest, GraphRAGRequest
+from django_semantic_network.schemas import (
+    IngestRequest,
+    SearchRequest,
+    GraphRAGRequest,
+)
 
 console = Console()
 client = KGClient()

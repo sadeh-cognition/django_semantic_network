@@ -1,6 +1,6 @@
 import djclick as click
-from django_lightrag.storage import get_ladybug_connection
-from django_lightrag.graph_builder import (
+from django_semantic_network.storage import get_ladybug_connection
+from django_semantic_network.graph_builder import (
     validate_no_circular_hierarchy,
     validate_no_isolated_concepts,
     validate_no_duplicates,

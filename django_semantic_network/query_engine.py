@@ -1,26 +1,28 @@
 from loguru import logger
-import os
-from typing import List, Dict, Any
-import litellm
+from typing import List, Any
+import dspy
+from embed_gen.generator import generate_embeddings
 
-# Let's import our schemas and storage
 from .schemas import SearchResult, ConceptOut, GraphRAGResponse
-from .storage import get_ladybug_connection, get_concepts_collection, get_papers_collection
+from .storage import get_ladybug_connection, get_concepts_collection
+from .dspy_runtime import get_default_chat_lm, get_embedding_config
+from .llm_signatures import GroundedAnswerGenerator
 
 
 def _get_embedding(text: str) -> List[float]:
-    model = os.environ.get("LMSTUDIO_EMBEDDING_MODEL", "text-embedding-ada-002")
-    api_base = os.environ.get("LMSTUDIO_API_BASE", "http://localhost:1234/v1")
     try:
-        response = litellm.embedding(
-            model=model,
-            api_base=api_base,
-            input=[text]
+        model_name, provider, base_url = get_embedding_config()
+        embeddings = generate_embeddings(
+            texts=[text],
+            model_name=model_name,
+            provider=provider,
+            base_url=base_url,
         )
-        return response.data[0]["embedding"]
+        return embeddings[0] if embeddings else []
     except Exception as e:
         logger.error(f"Embedding failed: {e}")
         return []
+
 
 def _concept_row_to_out(cols: List[str], row: List[Any]) -> dict:
     # LadybugDB usually returns tuples/lists of values, we need to map to columns
@@ -32,14 +34,15 @@ def _concept_row_to_out(cols: List[str], row: List[Any]) -> dict:
         "pref_label": d.get("c.prefLabel") or d.get("prefLabel", ""),
         "alt_labels": d.get("c.altLabels") or d.get("altLabels", []),
         "definition": d.get("c.definition") or d.get("definition", ""),
-        "confidence_score": d.get("c.confidence_score") or d.get("confidence_score", 1.0)
+        "confidence_score": d.get("c.confidence_score")
+        or d.get("confidence_score", 1.0),
     }
 
 
 def faceted_search(query: str, filters: dict, top_k: int) -> SearchResult:
     """Combines Chroma semantic search with graph retrieval."""
     concepts_coll = get_concepts_collection()
-    
+
     # 1. Semantic search if query provided
     concept_ids = set()
     if query:
@@ -49,14 +52,16 @@ def faceted_search(query: str, filters: dict, top_k: int) -> SearchResult:
                 query_embeddings=[emb],
                 n_results=top_k,
                 # filters could be applied to Chroma metadata here if necessary
-                where=filters if filters else None
+                where=filters if filters else None,
             )
             if res and res["ids"]:
                 for cid in res["ids"][0]:
                     concept_ids.add(cid)
-    
+
     # 2. Fetch full nodes from LadybugDB
     conn = get_ladybug_connection()
+    assert conn
+
     concepts = []
     if concept_ids:
         # Array param in Kuzu: WHERE c.id IN $ids
@@ -76,82 +81,77 @@ def faceted_search(query: str, filters: dict, top_k: int) -> SearchResult:
 
 def bfs_traversal(start_id: str, max_depth: int, direction: str) -> List[dict]:
     conn = get_ladybug_connection()
+    assert conn
+
     # Kuzu doesn't have `*1..3` syntax exactly like Neo4j, or maybe it does inline paths
     # Kuzu 0.5+ supports recursive joins `-[e:BROADER*1..3]->`
-    
+
     # Let's map direction
     rel_type = "BROADER|NARROWER|RELATED"
     if direction == "broader":
         rel_type = "BROADER"
     elif direction == "narrower":
         rel_type = "NARROWER"
-        
+
     query = f"""
     MATCH (s:Concept {{id: $id}})-[e:{rel_type}*1..{max_depth}]-(t:Concept)
     RETURN t.id, t.prefLabel, length(e) as depth
     """
     results = []
     try:
-         res = conn.execute(query, {"id": start_id})
-         cols = res.get_column_names()
-         while res.has_next():
-             row = res.get_next()
-             d = dict(zip(cols, row))
-             results.append({"id": d["t.id"], "pref_label": d["t.prefLabel"], "depth": d["depth"]})
+        res = conn.execute(query, {"id": start_id})
+        cols = res.get_column_names()
+        while res.has_next():
+            row = res.get_next()
+            d = dict(zip(cols, row))
+            results.append(
+                {"id": d["t.id"], "pref_label": d["t.prefLabel"], "depth": d["depth"]}
+            )
     except Exception as e:
-         logger.error(f"BFS traversal failed: {e}")
-         
+        logger.error(f"BFS traversal failed: {e}")
+
     return results
+
 
 def graphrag_query(query: str, top_k: int) -> GraphRAGResponse:
     # 1. Semantic search for entry concepts
     search_res = faceted_search(query=query, filters={}, top_k=top_k)
     concepts = search_res.concepts
-    
+
     # 2. Expand context (1-hop)
     context_str = ""
     target_ids = [c.id for c in concepts]
-    
+
     if target_ids:
-         conn = get_ladybug_connection()
-         q = """
+        conn = get_ladybug_connection()
+        assert conn
+
+        q = """
          MATCH (c:Concept)-[r:BROADER|NARROWER|RELATED]->(t:Concept)
          WHERE c.id IN $ids
          RETURN c.prefLabel, type(r), t.prefLabel, c.definition
          LIMIT 50
          """
-         try:
-             res = conn.execute(q, {"ids": target_ids})
-             while res.has_next():
-                 row = res.get_next()
-                 context_str += f"- {row[0]} [is {row[1]}] {row[2]}. (Definition of {row[0]}: {row[3]})\n"
-         except Exception as e:
-             logger.error(f"Graph context expansion failed: {e}")
-             
-    # 3. Call LLM to ground response
-    model = os.environ.get("LLM_MODEL", "groq/llama-3.1-8b-instant")
-    system_prompt = (
-        "You are an AI assistant answering questions grounded in a provided knowledge graph context.\n"
-        "Use ONLY the following relationships and definitions to answer the question.\n"
-        "Context:\n"
-    ) + context_str
-    
+        try:
+            res = conn.execute(q, {"ids": target_ids})
+            while res.has_next():
+                row = res.get_next()
+                context_str += f"- {row[0]} [is {row[1]}] {row[2]}. (Definition of {row[0]}: {row[3]})\n"
+        except Exception as e:
+            logger.error(f"Graph context expansion failed: {e}")
+
     try:
-        response = litellm.completion(
-             model=model,
-             messages=[
-                 {"role": "system", "content": system_prompt},
-                 {"role": "user", "content": query}
-             ],
-             temperature=0.0
-        )
-        answer = response.choices[0].message.content
+        lm = get_default_chat_lm()
+        generator = GroundedAnswerGenerator()
+        with dspy.context(lm=lm):
+            answer = generator(
+                question=query,
+                graph_context=context_str or "No graph context was retrieved.",
+            )
     except Exception as e:
         logger.error(f"GraphRAG inference failed: {e}")
         answer = "I'm sorry, I encountered an error while generating the response."
-        
+
     return GraphRAGResponse(
-         answer=answer,
-         grounding_concepts=concepts,
-         cypher_context=context_str
+        answer=answer, grounding_concepts=concepts, cypher_context=context_str
     )
