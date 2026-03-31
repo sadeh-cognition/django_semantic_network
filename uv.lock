@@ -459,6 +459,37 @@ wheels = [
 ]
 
 [[package]]
+name = "django-chromadb-viz"
+version = "0.1.0"
+source = { editable = "../chroma_viz_django" }
+dependencies = [
+    { name = "chromadb" },
+    { name = "django" },
+    { name = "loguru" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "black", marker = "extra == 'dev'", specifier = ">=23.0" },
+    { name = "chromadb", specifier = ">=0.4.0" },
+    { name = "django", specifier = ">=4.0" },
+    { name = "flake8", marker = "extra == 'dev'", specifier = ">=6.0" },
+    { name = "isort", marker = "extra == 'dev'", specifier = ">=5.12" },
+    { name = "loguru", specifier = ">=0.7.0" },
+    { name = "pytest", marker = "extra == 'dev'", specifier = ">=7.0" },
+    { name = "pytest-django", marker = "extra == 'dev'", specifier = ">=4.5" },
+]
+provides-extras = ["dev"]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "pre-commit", specifier = ">=4.3.0" },
+    { name = "pytest", specifier = ">=8.4.2" },
+    { name = "pytest-django", specifier = ">=4.11.1" },
+    { name = "ruff", specifier = ">=0.15.5" },
+]
+
+[[package]]
 name = "django-click"
 version = "2.5.0"
 source = { registry = "https://pypi.org/simple" }
@@ -1046,12 +1077,14 @@ source = { virtual = "." }
 dependencies = [
     { name = "chromadb" },
     { name = "django" },
+    { name = "django-chromadb-viz" },
     { name = "django-click" },
     { name = "django-ninja" },
     { name = "django-stubs" },
     { name = "dspy" },
     { name = "embed-gen" },
     { name = "httpx" },
+    { name = "ladybug-viz" },
     { name = "litellm" },
     { name = "loguru" },
     { name = "python-dotenv" },
@@ -1069,7 +1102,10 @@ dev = [
 
 [package.dev-dependencies]
 dev = [
+    { name = "model-bakery" },
     { name = "pre-commit" },
+    { name = "pytest" },
+    { name = "pytest-django" },
     { name = "rich" },
 ]
 
@@ -1077,12 +1113,14 @@ dev = [
 requires-dist = [
     { name = "chromadb" },
     { name = "django", specifier = ">=5.0" },
+    { name = "django-chromadb-viz", editable = "../chroma_viz_django" },
     { name = "django-click" },
     { name = "django-ninja" },
     { name = "django-stubs" },
     { name = "dspy" },
     { name = "embed-gen", editable = "../embed_gen" },
     { name = "httpx" },
+    { name = "ladybug-viz", editable = "../ladybug_viz_django" },
     { name = "litellm" },
     { name = "loguru", specifier = ">=0.7.3" },
     { name = "model-bakery", marker = "extra == 'dev'" },
@@ -1097,7 +1135,10 @@ provides-extras = ["dev"]
 
 [package.metadata.requires-dev]
 dev = [
+    { name = "model-bakery" },
     { name = "pre-commit", specifier = ">=4.5.1" },
+    { name = "pytest" },
+    { name = "pytest-django" },
     { name = "rich", specifier = ">=14.3.3" },
 ]
 
@@ -1120,6 +1161,30 @@ sdist = { url = "https://files.pythonhosted.org/packages/2c/8f/85bf51ad4150f64e8
 wheels = [
     { url = "https://files.pythonhosted.org/packages/0c/70/05b685ea2dffcb2adbf3cdcea5d8865b7bc66f67249084cf845012a0ff13/kubernetes-35.0.0-py2.py3-none-any.whl", hash = "sha256:39e2b33b46e5834ef6c3985ebfe2047ab39135d41de51ce7641a7ca5b372a13d", size = 2017602, upload-time = "2026-01-16T01:05:25.991Z" },
 ]
+
+[[package]]
+name = "ladybug-viz"
+version = "0.1.0"
+source = { editable = "../ladybug_viz_django" }
+dependencies = [
+    { name = "django" },
+    { name = "django-ninja" },
+    { name = "pytest" },
+    { name = "pytest-django" },
+    { name = "real-ladybug" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "django", specifier = ">=4.2" },
+    { name = "django-ninja", specifier = ">=1.0" },
+    { name = "pytest", specifier = ">=9.0.2" },
+    { name = "pytest", marker = "extra == 'dev'", specifier = ">=7.0" },
+    { name = "pytest-django", specifier = ">=4.12.0" },
+    { name = "pytest-django", marker = "extra == 'dev'", specifier = ">=4.5" },
+    { name = "real-ladybug", specifier = ">=0.1" },
+]
+provides-extras = ["dev"]
 
 [[package]]
 name = "litellm"

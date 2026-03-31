@@ -2,4 +2,4 @@
 .env
 *.lbug
 *.sqlite3
-./chroma_data/
+chroma_data/

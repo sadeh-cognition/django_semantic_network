@@ -16,11 +16,13 @@ Including another URLconf
 """
 
 from django.contrib import admin
-from django.urls import path
+from django.urls import include, path
 
 from django_semantic_network.urls import api
 
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/", api.urls),
+    path("chromadb/", include("django_chromadb_viz.urls")),
+    path("ladybug-viz/", include("ladybug_viz.urls")),
 ]

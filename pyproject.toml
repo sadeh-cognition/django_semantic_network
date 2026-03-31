@@ -8,6 +8,8 @@ dependencies = [
     "django-ninja",
     "django-stubs",
     "django-click",
+    "django-chromadb-viz",
+    "ladybug-viz",
     "real-ladybug",
     "chromadb",
     "litellm",
@@ -35,9 +37,14 @@ python_files = ["test_*.py", "*_test.py", "testing/python/*.py"]
 
 [tool.uv.sources]
 embed-gen = { path = "../embed_gen", editable = true }
+django-chromadb-viz = { path = "../chroma_viz_django", editable = true }
+ladybug-viz = { path = "../ladybug_viz_django", editable = true }
 
 [dependency-groups]
 dev = [
+    "model-bakery",
+    "pytest",
+    "pytest-django",
     "pre-commit>=4.5.1",
     "rich>=14.3.3",
 ]

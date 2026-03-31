@@ -45,6 +45,8 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "djclick",
+    "django_chromadb_viz",
+    "ladybug_viz",
     "django_semantic_network",
 ]
 
