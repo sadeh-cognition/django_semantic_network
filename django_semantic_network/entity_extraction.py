@@ -6,7 +6,7 @@ import dspy
 from loguru import logger
 
 from .dspy_runtime import get_default_chat_lm
-from .llm_signatures import ExtractConceptGraphSignature
+from .prompts import ExtractConceptGraphSignature
 
 
 @dataclass

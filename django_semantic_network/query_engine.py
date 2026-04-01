@@ -6,7 +6,7 @@ from embed_gen.generator import generate_embeddings
 from .schemas import SearchResult, ConceptOut, GraphRAGResponse
 from .storage import get_ladybug_connection, get_concepts_collection
 from .dspy_runtime import get_default_chat_lm, get_embedding_config
-from .llm_signatures import GroundedAnswerGenerator
+from .prompts import GroundedAnswerGenerator
 
 
 def _get_embedding(text: str) -> List[float]:
@@ -36,6 +36,7 @@ def _concept_row_to_out(cols: List[str], row: List[Any]) -> dict:
         "definition": d.get("c.definition") or d.get("definition", ""),
         "confidence_score": d.get("c.confidence_score")
         or d.get("confidence_score", 1.0),
+        "source_text": d.get("c.source_chunk") or d.get("source_chunk", ""),
     }
 
 
@@ -65,7 +66,7 @@ def faceted_search(query: str, filters: dict, top_k: int) -> SearchResult:
     concepts = []
     if concept_ids:
         # Array param in Kuzu: WHERE c.id IN $ids
-        q = "MATCH (c:Concept) WHERE c.id IN $ids RETURN c.id, c.prefLabel, c.altLabels, c.definition, c.confidence_score"
+        q = "MATCH (c:Concept) WHERE c.id IN $ids RETURN c.id, c.prefLabel, c.altLabels, c.definition, c.confidence_score, c.source_chunk"
         try:
             res = conn.execute(q, {"ids": list(concept_ids)})
             cols = res.get_column_names()

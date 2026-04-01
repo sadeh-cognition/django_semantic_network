@@ -42,12 +42,14 @@ def search_menu():
             table.add_column("Score", justify="right", style="cyan", no_wrap=True)
             table.add_column("Pref Label", style="magenta")
             table.add_column("Definition", style="green")
+            table.add_column("Source Text", style="yellow")
 
             for c in res.concepts:
                 table.add_row(
                     f"{c.confidence_score:.2f}",
                     c.pref_label,
                     c.definition,
+                    c.source_text,
                 )
             console.print(table)
         except Exception as e:
@@ -64,7 +66,9 @@ def graphrag_menu():
             )
             console.print("\n[bold]Grounding concepts used:[/bold]")
             for c in res.grounding_concepts:
-                console.print(f" - [cyan]{c.pref_label}[/]: {c.definition[:60]}...")
+                console.print(f" - [cyan]{c.pref_label}[/]: {c.definition}")
+                if c.source_text:
+                    console.print(f"   [dim]Source: {c.source_text}[/]")
         except Exception as e:
             console.print(f"[bold red]Error:[/] {e}")
 

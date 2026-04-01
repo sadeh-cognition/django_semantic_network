@@ -20,6 +20,7 @@ class ConceptOut(BaseModel):
     alt_labels: List[str]
     definition: str
     confidence_score: float
+    source_text: str = ""
 
 
 class SearchRequest(BaseModel):
