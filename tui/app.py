@@ -47,7 +47,7 @@ def search_menu():
                 table.add_row(
                     f"{c.confidence_score:.2f}",
                     c.pref_label,
-                    c.definition[:100] + "...",
+                    c.definition,
                 )
             console.print(table)
         except Exception as e:

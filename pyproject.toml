@@ -19,6 +19,7 @@ dependencies = [
     "ruff",
     "loguru>=0.7.3",
     "embed-gen",
+    "chonkie[semantic]",
 ]
 
 [project.optional-dependencies]

@@ -12,7 +12,7 @@ from django_semantic_network.schemas import (
 
 
 class KGClient:
-    def __init__(self, base_url="http://localhost:8001/api"):
+    def __init__(self, base_url="http://localhost:8003/api"):
         self.base_url = base_url
         self.client = httpx.Client(timeout=60.0)
 

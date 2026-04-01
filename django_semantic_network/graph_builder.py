@@ -122,7 +122,7 @@ def validate_no_circular_hierarchy(conn) -> List[List[str]]:
     # Let's just check for 1-hop and 2-hop cycles for simplicity.
     cycles = []
     try:
-        res = conn.execute("MATCH (c:Concept)-[:BROADER]->(c) RETURN id(c)")
+        res = conn.execute("MATCH (c:Concept)-[:BROADER]->(c) RETURN c.id")
         while res.has_next():
             row = res.get_next()
             cycles.append([row[0], row[0]])

@@ -24,5 +24,5 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/", api.urls),
     path("chromadb/", include("django_chromadb_viz.urls")),
-    path("ladybug-viz/", include("ladybug_viz.urls")),
+    path("ladybug-viz/", include("django_semantic_network.ladybug_viz_urls")),
 ]
