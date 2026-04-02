@@ -38,7 +38,7 @@ def search_menu():
     with console.status("[bold blue]Searching..."):
         try:
             res = client.search(SearchRequest(query=query))
-            table = Table(title=f"Search Results for '{query}'")
+            table = Table(title=f"Search Results for '{query}'", show_lines=True)
             table.add_column("Score", justify="right", style="cyan", no_wrap=True)
             table.add_column("Pref Label", style="magenta")
             table.add_column("Definition", style="green")
